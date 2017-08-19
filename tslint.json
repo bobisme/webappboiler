@@ -1,0 +1,19 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:recommended",
+    "tslint-react"
+  ],
+  "jsRules": {},
+  "rules": {
+    // Disable the public, private, protected enforcer
+    "member-access": false,
+    // Prefer let all the time.
+    "prefer-const": false,
+    // Single-quote strings except for jsx attributes or when escaping "'",
+    // don't use `` if not necessary.
+    "quotemark": [true, "single", "jsx-double", "avoid-escape", "avoid-template"],
+    "semicolon": [true, "never"]
+  },
+  "rulesDirectory": []
+}
