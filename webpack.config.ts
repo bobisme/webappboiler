@@ -6,7 +6,7 @@ import * as webpack from 'webpack'
 const BUILD_PATH = path.resolve(__dirname, 'build')
 const SRC_PATH = path.resolve(__dirname, 'src')
 
-let cssLoader = {
+let cssLoader: webpack.Loader = {
   loader: require.resolve('typings-for-css-modules-loader'),
   options: {
     camelCase: true,
@@ -18,11 +18,13 @@ let cssLoader = {
 }
 
 // Extracts css to separete files. Useful for caching and loading performance.
-let cssExtractor = new ExtractTextPlugin(
-  { filename: 'css/[name]-[chunkhash].css', allChunks: true })
+let cssExtractor = new ExtractTextPlugin({
+  allChunks: true,
+  filename: 'css/[name]-[chunkhash].css',
+})
 
 // The loader for the css extractor
-let cssExtractorLoader = cssExtractor.extract({
+let cssExtractorLoader: webpack.Loader = cssExtractor.extract({
   allChunks: true,
   fallback: 'style-loader',
   use: (
@@ -34,21 +36,24 @@ let cssExtractorLoader = cssExtractor.extract({
 })
 
 // the rule to do the inlined CSS loading
-let cssStyleLoaderRule = {
+let cssStyleLoaderRule: webpack.Rule = {
   test: /\.css$/i,
   use: [{ loader: 'style-loader' }, cssLoader],
 }
 
 // the rule for extracted CSS loading
-let cssExtractorRule = {
+let cssExtractorRule: webpack.Rule = {
   include: [SRC_PATH],
   test: /\.css$/i,
   use: cssExtractorLoader,
 }
 
-let typescriptRule = { test: /\.tsx?$/, loader: 'awesome-typescript-loader' }
+let typescriptRule: webpack.Rule = {
+  loader: 'awesome-typescript-loader',
+  test: /\.tsx?$/,
+}
 
-function getHtmlPlugin() {
+function getHtmlPlugin(): webpack.Plugin {
   return new HtmlWebpackPlugin({
     inject: 'body',
     template: SRC_PATH + '/index.html',
@@ -56,7 +61,7 @@ function getHtmlPlugin() {
   })
 }
 
-function getConfig(env = 'production') {
+function getConfig(env = 'production'): webpack.Configuration {
   let config: webpack.Configuration = {
     devtool: 'cheap-module-source-map',
     // Entry-point of the single page application.
@@ -73,7 +78,7 @@ function getConfig(env = 'production') {
         // babelRule,
         // jsonRule,
       ],
-    },
+    } as webpack.NewModule,
     output: {
       filename: 'bundle.js',
       path: BUILD_PATH,
@@ -93,26 +98,14 @@ function getConfig(env = 'production') {
   return config
 }
 
-function prodConfig() {
+function prodConfig(): webpack.Configuration {
   let config = getConfig('production')
 
   config.plugins = config.plugins.concat([
     // extract css to separate files
     cssExtractor,
     // minify js
-    new webpack.optimize.UglifyJsPlugin({
-      compressor: {
-        screw_ie8: true,
-        warnings: false,
-      },
-      mangle: {
-        screw_ie8: true,
-      },
-      output: {
-        comments: false,
-        screw_ie8: true,
-      },
-    }),
+    new webpack.optimize.UglifyJsPlugin(),
     // render the index.html, including the built files appropriately
     getHtmlPlugin(),
   ])
@@ -120,7 +113,7 @@ function prodConfig() {
   return config
 }
 
-function devConfig() {
+function devConfig(): webpack.Configuration {
   let config = getConfig('dev')
   config.output.publicPath = '/'
 
@@ -162,4 +155,4 @@ function devConfig() {
 module.exports = (() => {
   if (process.env.NODE_ENV === 'production') { return prodConfig() }
   return devConfig()
-})()
+})() as webpack.Configuration
