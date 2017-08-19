@@ -4,5 +4,8 @@
     "module": "commonjs",
     "sourceMap": true,
     "target": "es5"
-  }
+  },
+  "include": [
+    "pages/**/*"
+  ]
 }

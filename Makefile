@@ -9,8 +9,8 @@ PHONY:
 build: PHONY ## Build the production ready site in /build
 	export NODE_ENV=production && webpack
 
-dev-server: PHONY
-	export NODE_ENV=dev && webpack-dev-server
+dev-server: PHONY ## Launch file-watching dev server.
+	export NODE_ENV=dev && concurrently "tsc --watch" "next"
 
 test: PHONY ## Run tests.
 	mocha -r ts-node/register test/*.ts
