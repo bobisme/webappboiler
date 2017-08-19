@@ -6,7 +6,7 @@ import * as css from './index.css'
 export default function App() {
   return (
     <div>
-      <h1 className={css.header}>Hi there, ho ho hoy</h1>
+      <h1 className={css.header}>Hi there.</h1>
     </div>
   )
 }

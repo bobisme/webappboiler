@@ -1,7 +1,7 @@
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const path = require('path')
-const webpack = require('webpack')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
+import * as HtmlWebpackPlugin from 'html-webpack-plugin'
+import * as path from 'path'
+import * as webpack from 'webpack'
 
 const BUILD_PATH = path.resolve(__dirname, 'build')
 const SRC_PATH = path.resolve(__dirname, 'src')
@@ -9,11 +9,11 @@ const SRC_PATH = path.resolve(__dirname, 'src')
 let cssLoader = {
   loader: require.resolve('typings-for-css-modules-loader'),
   options: {
+    camelCase: true,
     importLoaders: 1,
+    localIdentName: '[name]__[local]___[hash:base64:5]',
     modules: true,
     namedExport: true,
-    camelCase: true,
-    localIdentName: '[name]__[local]___[hash:base64:5]',
   },
 }
 
@@ -23,14 +23,14 @@ let cssExtractor = new ExtractTextPlugin(
 
 // The loader for the css extractor
 let cssExtractorLoader = cssExtractor.extract({
+  allChunks: true,
+  fallback: 'style-loader',
   use: (
     'typings-for-css-modules-loader'
     + '?modules'
     + '&namedExport'
     + '&camelCase'
     + '&localIdentName=[local]___[hash:base64:5]'),
-  fallback: 'style-loader',
-  allChunks: true,
 })
 
 // the rule to do the inlined CSS loading
@@ -41,41 +41,28 @@ let cssStyleLoaderRule = {
 
 // the rule for extracted CSS loading
 let cssExtractorRule = {
+  include: [SRC_PATH],
   test: /\.css$/i,
   use: cssExtractorLoader,
-  include: [SRC_PATH],
 }
 
 let typescriptRule = { test: /\.tsx?$/, loader: 'awesome-typescript-loader' }
 
 function getHtmlPlugin() {
   return new HtmlWebpackPlugin({
-    title: 'LiveRamp Publishers Dashboard',
-    template: SRC_PATH + '/index.html',
     inject: 'body',
+    template: SRC_PATH + '/index.html',
+    title: 'LiveRamp Publishers Dashboard',
   })
 }
 
 function getConfig(env = 'production') {
-  let config = {
+  let config: webpack.Configuration = {
+    devtool: 'cheap-module-source-map',
     // Entry-point of the single page application.
     entry: {
       app: ['./src/index.tsx'],
     },
-
-    output: {
-      path: BUILD_PATH,
-      filename: 'bundle.js',
-    },
-
-    resolve: {
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '.css', '.json'],
-      modules: [
-        'node_modules',
-        SRC_PATH,
-      ],
-    },
-
     module: {
       rules: [
         // Replace the extract-text-plugin rule for styles with the
@@ -87,12 +74,20 @@ function getConfig(env = 'production') {
         // jsonRule,
       ],
     },
-
-    devtool: 'cheap-module-source-map',
-
+    output: {
+      filename: 'bundle.js',
+      path: BUILD_PATH,
+    },
     plugins: [
       new webpack.DefinePlugin({ 'process.env.NODE_ENV': `"${env}"` }),
     ],
+    resolve: {
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.css', '.json'],
+      modules: [
+        'node_modules',
+        SRC_PATH,
+      ],
+    },
   }
 
   return config
@@ -165,7 +160,6 @@ function devConfig() {
 }
 
 module.exports = (() => {
-  if (process.env.NODE_ENV === 'production') return prodConfig()
+  if (process.env.NODE_ENV === 'production') { return prodConfig() }
   return devConfig()
 })()
-
