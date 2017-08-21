@@ -3,25 +3,30 @@ PATH := node_modules/.bin:$(PATH)
 
 .DEFAULT_GOAL := help
 
-.PHONY: PHONY
-PHONY:
+.PHONY: _
+_:
 
-build: PHONY ## Build the production ready site in /build
+build: _ ## Build the production ready site in /build
 	export NODE_ENV=production && webpack
 
-dev-server: PHONY
+dev-server: _
 	export NODE_ENV=dev && webpack-dev-server
+dev: dev-server
 
-test: PHONY ## Run tests.
+test: _ ## Run tests.
 	mocha -r ts-node/register test/*.ts
 t: test
 
-test-watch: PHONY ## Run tests, watching for changes.
+test-watch: _ ## Run tests, watching for changes.
 	mocha --watch --watch-extensions=ts --reporter=min \
 		-r ts-node/register test/*.ts
 watch-test: test-watch
 watch: test-watch
 w: test-watch
+
+run: _
+	node build/
+
 
 help:
 	@# Find all targets with descriptions.
