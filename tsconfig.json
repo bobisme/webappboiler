@@ -5,10 +5,10 @@
     "module": "commonjs",
     "sourceMap": true,
     "target": "es5",
-    "baseUrl": "./src",
+    "lib": ["es6", "dom"],
+    "baseUrl": ".",
     "paths": {
-      "pages": ["pages"],
-      "components": ["components"]
+      "*": ["src/*"]
     }
   }
 }

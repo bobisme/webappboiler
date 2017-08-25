@@ -3,8 +3,8 @@ import * as HtmlWebpackPlugin from 'html-webpack-plugin'
 import * as path from 'path'
 import * as webpack from 'webpack'
 
-const BUILD_PATH = path.resolve(__dirname, 'build')
-const SRC_PATH = path.resolve(__dirname, 'src')
+export const BUILD_PATH = path.resolve(__dirname, 'build')
+export const SRC_PATH = path.resolve(__dirname, 'src')
 
 const CLASS_PATTERN = '[local]___[hash:base64:5]'
 
@@ -68,7 +68,8 @@ function getConfig(env = 'production'): webpack.Configuration {
     devtool: 'cheap-module-source-map',
     // Entry-point of the single page application.
     entry: {
-      index: './src/pages/index.tsx',
+      'another-page': './src/pages/another-page.tsx',
+      'index': './src/pages/index.tsx',
     },
     module: {
       rules: [
@@ -105,7 +106,7 @@ function getConfig(env = 'production'): webpack.Configuration {
 
 function serverConfig(): webpack.Configuration {
   let config = getConfig('production')
-  config.entry = { server: './src/server/index.ts' }
+  config.entry = { server: './src/server/server.tsx' }
 
   let module = config.module as webpack.NewModule
   // module.rules.push(cssStyleLoaderRule)
@@ -132,51 +133,69 @@ function serverConfig(): webpack.Configuration {
   return config
 }
 
-function prodConfig(): webpack.Configuration {
-  let config = getConfig('production')
+const chunks: Array<[string, string]> = [
+  ['another-page', './src/pages/another-page.tsx'],
+  ['index', './src/pages/index.tsx'],
+]
 
-  let rules = (config.module as webpack.NewModule).rules
-  rules.push(cssExtractorRule)
+function prodConfig(): webpack.Configuration[] {
+  return chunks.map(x => {
+    let config = getConfig('production')
 
-  config.plugins = config.plugins.concat([
-    // extract css to separate files
-    cssExtractor,
-    // minify js
-    new webpack.optimize.UglifyJsPlugin(),
-    // render the index.html, including the built files appropriately
-    getHtmlPlugin(),
-  ])
+    let rules = (config.module as webpack.NewModule).rules
+    rules.push(cssExtractorRule)
+    config.entry = {
+      [x[0]]: [x[1]],
+    }
 
-  return config
+    if (x[0] !== 'index') {
+      config.output.path = path.join(BUILD_PATH, x[0])
+    }
+
+    config.plugins = config.plugins.concat([
+      // extract css to separate files
+      cssExtractor,
+      // minify js
+      // new webpack.optimize.UglifyJsPlugin(),
+      // Split off common modules into a separate bundle.
+      // new webpack.optimize.CommonsChunkPlugin({ name: 'common' }),
+      // render the index.html, including the built files appropriately
+      getHtmlPlugin(),
+    ])
+
+    return config
+  })
 }
 
-function devConfig(): webpack.Configuration {
+function devConfig(chunkName, entryPath): webpack.Configuration {
   let config = getConfig('dev')
   config.output.publicPath = '/'
 
-  // Object.getOwnPropertyNames(config.entry)
-  //   .forEach(x => {
-  //     config.entry[x] = ['react-hot-loader/patch', config.entry[x]]
-  //   })
+  config.entry = {
+    [chunkName]: [
+      'webpack-hot-middleware/client',
+      entryPath,
+    ],
+  }
+
+  if (chunkName !== 'index') {
+    config.output.path = path.join(BUILD_PATH, chunkName)
+    config.output.publicPath = '/' + chunkName
+  }
 
   // configuration for the webpack dev server
   config.devServer = {
     contentBase: BUILD_PATH,
-
     // Enable history API fallback so HTML5 History API based
     // routing works. This is a good default that will come
     // in handy in more complicated setups.
-    historyApiFallback: {
-      index: 'index.html',
-    },
-
+    historyApiFallback: (
+      chunkName === 'index' ? true : { index: `/${chunkName}/`}),
+    host: '0.0.0.0',
     // Enable hot module replacement.
     hot: true,
     inline: true,
-
-    // stats: 'errors-only',
-
-    // host: '0.0.0.0',
+    stats: 'errors-only',
     port: 3002,
   }
 
@@ -197,9 +216,11 @@ function devConfig(): webpack.Configuration {
   return config
 }
 
-module.exports = (() => {
+export const configs: webpack.Configuration[] = (() => {
   if (process.env.NODE_ENV === 'production') {
-    return [prodConfig(), serverConfig()]
+    return [...prodConfig(), serverConfig()]
   }
-  return devConfig()
-})() as webpack.Configuration
+  return chunks.map(chunk => devConfig(chunk[0], chunk[1]))
+})()
+
+export default configs

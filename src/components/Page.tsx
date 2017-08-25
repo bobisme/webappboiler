@@ -10,23 +10,7 @@ interface PageProps {
 export default function Page({ children }: PageProps) {
   return (
     <div className={css.page}>
-      <div className={css.header}>
-        <Link to="/">Home</Link>
-        <Link to="/another-page">Another Page</Link>
-      </div>
-      <div className={css.content}>
-        {children}
-      </div>
+      {children}
     </div>
   )
 }
-
-//
-// export default Page
-//
-
-// export default class Page extends React.Component {
-//   render() {
-//     return <div>fuck</div>
-//   }
-// }

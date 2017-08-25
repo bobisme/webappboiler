@@ -11,6 +11,7 @@ build: _ ## Build the production ready site in /build
 
 dev-server: _
 	export NODE_ENV=dev && webpack-dev-server
+	@# export NODE_ENV=dev && ts-node dev-server.ts
 dev: dev-server
 
 test: _ ## Run tests.
@@ -25,8 +26,10 @@ watch: test-watch
 w: test-watch
 
 run: _
-	node build/
+	node build/server.js
 
+clean: ## Clean up the project.
+	rm -Rf build/
 
 help:
 	@# Find all targets with descriptions.

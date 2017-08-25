@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
 
 const ROOT_ELEMENT_ID = 'app'
 
@@ -13,18 +14,27 @@ function getAppElement(id = ROOT_ELEMENT_ID) {
   return element
 }
 
-export function mountPage(pageModule, component, id = ROOT_ELEMENT_ID) {
-  let element = getAppElement(id)
-  ReactDOM.render(React.createElement(component, {}), element)
+function render(Component, element) {
+  ReactDOM.render(
+    <BrowserRouter>
+      <Component />
+    </BrowserRouter>,
+    element,
+  )
+}
+
+export function mountPage(pageModule, Component, id = ROOT_ELEMENT_ID) {
+  // If there is no document, we're in node, so just pass through.
+  if (typeof document === 'undefined') { return Component }
+
+  render(Component, getAppElement(id))
 
   if (pageModule.hot) {
     pageModule.hot.accept()
-    ReactDOM.render(
-      React.createElement(component, {}),
-      document.getElementById(id))
+    render(Component, getAppElement(id))
   }
 
-  return component
+  return Component
 }
 
 // example:
@@ -32,7 +42,5 @@ export function mountPage(pageModule, component, id = ROOT_ELEMENT_ID) {
 //   export default class Home extends React.Component {
 //     ...
 export function mount(pageModule, id: string = ROOT_ELEMENT_ID) {
-  return component => {
-    return mountPage(pageModule, component, id)
-  }
+  return component => mountPage(pageModule, component, id)
 }
