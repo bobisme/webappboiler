@@ -195,8 +195,8 @@ function devConfig(chunkName, entryPath): webpack.Configuration {
     // Enable hot module replacement.
     hot: true,
     inline: true,
-    stats: 'errors-only',
     port: 3002,
+    stats: 'errors-only',
   }
 
   let rules = (config.module as webpack.NewModule).rules
